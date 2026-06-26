@@ -1,0 +1,93 @@
+---
+title: 'What an OCR HIPAA audit actually asks for'
+description: 'A walk-through of the artifacts an OCR audit letter actually demands — risk assessment, policies, BAAs, training records — and how to have them ready before the letter arrives.'
+publishedAt: '2026-05-14'
+author: 'Sohail Akram'
+tags:
+  - hipaa
+  - compliance
+  - healthcare
+draft: false
+---
+
+Most medical practices we audit have a thick binder labeled "HIPAA" and very little of what an Office for Civil Rights (OCR) auditor would actually ask to see in it. The binder is not the problem. The mismatch between what is in the binder and what an auditor wants is the problem.
+
+This post walks through the artifacts an OCR audit letter typically demands. Use it as a checklist — if you cannot pull every item below within an hour, you have a project to do.
+
+## The risk assessment
+
+The Security Rule (45 CFR § 164.308(a)(1)(ii)(A)) requires an "accurate and thorough assessment of the potential risks and vulnerabilities to the confidentiality, integrity, and availability of electronic protected health information." Auditors want:
+
+- A written risk assessment performed within the last 12 months.
+- A list of ePHI assets (systems, repositories, mobile devices) covered by the assessment.
+- Evidence the assessment was performed by someone qualified to perform it.
+- A risk-treatment plan with timelines for the high-risk findings.
+
+If your last risk assessment is two years old, that is the first finding. If it does not enumerate systems, that is the second.
+
+## Policies and procedures
+
+Auditors typically request the full set of Security Rule policies. The minimum baseline:
+
+- **Information access management** — how access is granted, reviewed, and revoked.
+- **Workforce security** — onboarding, background checks, and the termination workflow.
+- **Security awareness and training** — annual training plus role-specific training for IT.
+- **Security incident procedures** — what counts as an incident, who is notified, how it's logged.
+- **Contingency plan** — backup, disaster recovery, and the emergency-mode operation plan.
+- **Audit controls** — what is logged, where logs are stored, who reviews them, on what cadence.
+- **Person or entity authentication** — MFA, password complexity, account lockout.
+- **Transmission security** — encryption in transit for ePHI.
+
+Each policy has a corresponding procedure. The policy says *what*. The procedure says *how, by whom, and when*. Most binders we audit have the policies and not the procedures.
+
+## Business Associate Agreements
+
+Make a list of every vendor that touches ePHI — EHR vendor, billing vendor, fax provider, IT support, cloud backup, secure messaging app. The auditor will ask for the BAA for each one. Two common issues:
+
+1. The BAA was signed in 2014 and references an older Security Rule version.
+2. There is no BAA at all because somebody assumed the vendor was &ldquo;covered.&rdquo;
+
+Both are findings. Both are easy to fix — but only if you actually have the vendor inventory.
+
+## Training records
+
+Annual HIPAA training for every workforce member, plus role-specific training for staff with access to ePHI (front-office, billing, IT). Auditors want:
+
+- The training curriculum.
+- A signed acknowledgment from every employee, dated within the last 12 months.
+- Evidence of training for new hires within a reasonable window of their start date.
+
+> Pro tip: a signed PDF in each employee&apos;s HR file is fine. A spreadsheet of completion timestamps from your LMS is better.
+
+## Technical evidence
+
+This is where MSPs earn their keep. Auditors want evidence of the technical safeguards actually working:
+
+- Access logs for ePHI systems showing the last 90 days.
+- Endpoint encryption status reports.
+- MFA enforcement reports.
+- Backup test reports — not just "we have backups," but "we restored a backup on this date and verified it."
+- Vulnerability scan or pen-test reports from the last 12 months.
+
+Most practices have backups. Fewer have a documented restore test. Almost none have a 90-day access log they can hand over in an hour.
+
+## Breach response readiness
+
+If the audit follows a complaint or a near-miss, OCR will want:
+
+- The incident log.
+- Documentation of the breach risk assessment (was PHI compromised?).
+- Notification records (individuals, HHS, media if applicable).
+- The corrective action taken.
+
+Have a template for each. The middle of an incident is not the time to write a notification letter from scratch.
+
+## What to do today
+
+If you are reading this and your binder does not have these artifacts, do three things this week:
+
+1. Inventory your ePHI systems and the vendors that touch them.
+2. Schedule a new risk assessment if your last one is older than 12 months.
+3. Pull 90 days of access logs from one ePHI system. If you can&apos;t, that&apos;s a P0.
+
+If you want help — we run this checklist as our 60-minute [free IT audit](/free-it-audit). You walk away with a written punch list whether we work together or not.

@@ -1,0 +1,82 @@
+---
+title: 'Modernizing a 50-provider medical group in 90 days'
+description: 'How a multi-location regional medical group replaced aging on-prem servers, hardened access control, and passed their first OCR-style internal audit — without losing a single appointment to downtime.'
+publishedAt: '2026-04-22'
+author: 'GITSOLS Engineering'
+tags:
+  - healthcare
+  - infrastructure
+  - hipaa
+client: 'Regional Medical Group (anonymized)'
+industry: 'Healthcare'
+services:
+  - 'managed-it'
+  - 'cybersecurity'
+  - 'compliance'
+  - 'cloud'
+outcomes:
+  - '0 appointments lost to downtime during migration'
+  - 'EHR latency reduced 38% from baseline'
+  - 'MFA coverage went from 22% to 100% in 14 days'
+  - 'Internal audit findings cleared in time for renewal'
+draft: false
+---
+
+## Background
+
+A multi-specialty medical group with 50 providers across 4 New Jersey offices reached out to GITSOLS after a partner-level conversation about IT risk. Their internal compliance lead had flagged three open issues: aging on-prem infrastructure, weak access controls, and a Business Associate Agreement (BAA) gap with a vendor that had recently been acquired.
+
+The group&apos;s incumbent IT partner was reactive and good at break-fix. Strategic work was not happening.
+
+## Discovery
+
+Our 2-week discovery sprint covered four areas:
+
+- **Infrastructure** — server age, virtualization platform, switching, Wi-Fi, EHR latency.
+- **Identity & access** — Microsoft 365 tenant config, MFA coverage, conditional access, privileged account isolation.
+- **Backup & recovery** — what was backed up, retention, last documented restore test.
+- **Compliance posture** — HIPAA Security Rule control mapping, BAA inventory, training records.
+
+The discovery report had 47 findings. 9 were P0.
+
+## Engagement scope
+
+We proposed a 90-day engagement with 7 milestones:
+
+| Milestone | Duration | Owner |
+|---|---|---|
+| 1. Stabilize MFA and conditional access | 2 weeks | PM + Engineer |
+| 2. Replace primary file server with M365 SharePoint + Teams | 3 weeks | PM + Engineer |
+| 3. Migrate EHR database to a hosted Azure instance | 3 weeks | Engineer + EHR vendor |
+| 4. Deploy EDR across all endpoints | 1 week | Engineer |
+| 5. Update BAAs across vendor list | 2 weeks | PM + Compliance |
+| 6. Rebuild backup posture with documented restore drill | 2 weeks | Engineer |
+| 7. Internal audit dry-run | 1 week | PM + Compliance |
+
+Each milestone had explicit deliverables and a client-approval gate.
+
+## Execution highlights
+
+**MFA in 14 days.** Coverage went from 22% to 100% by enforcing conditional access in tranches — physicians first (with phone-call MFA as a fallback for the older staff who pushed back), then operations, then admin. Every escalation had a documented exception and an expiry date.
+
+**Zero-downtime EHR move.** The EHR migration ran Saturday → Sunday with two hours of read-only mode and a planned 4-hour write outage. We hit the window with 30 minutes to spare. Monday saw normal appointment volume and 38% lower latency on the heaviest forms.
+
+**BAA inventory.** The vendor list expanded from 11 known vendors to 23 actual vendors that touched ePHI. Eight had stale BAAs; three had none. All resolved before milestone 5 closed.
+
+**Restore drill that mattered.** Instead of "we ran a test," we restored the previous week&apos;s EHR database into a sandbox and had the compliance lead verify three actual patient records. That artifact became the centerpiece of the internal audit dry-run.
+
+## Outcomes
+
+- **0 appointments lost** to downtime during the 90-day engagement.
+- **EHR latency reduced 38%** on the most-used clinical workflow.
+- **MFA coverage 100%** within 14 days of milestone 1 kickoff.
+- **Internal audit cleared** in time for cyber-insurance renewal — premium held flat at renewal despite hardening market.
+- **Time to onboard new provider** reduced from 4 business days to half a business day.
+
+## What we&apos;d do differently
+
+The vendor inventory took longer than scoped. In the future we would start the vendor discovery in parallel with milestone 1 rather than scheduling it as milestone 5 — by the time we got there, contracts had already lapsed at one of the smaller vendors and we had to fast-track replacements.
+
+## What&apos;s next
+
+The group is now on our managed retainer. Monthly reports show ticket SLA, milestone progress on the post-engagement roadmap, and a continuous compliance dashboard. Next major project — a custom patient-intake portal — is in discovery as a [bespoke software](/services/bespoke-software) engagement.

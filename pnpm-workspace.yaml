@@ -1,0 +1,8 @@
+# pnpm workspace definition. Replaces the `workspaces` field in package.json.
+#
+# Glob order matters for nothing here, but keep apps before packages so
+# `pnpm install` resolves shared packages before consumers.
+
+packages:
+  - 'apps/*'
+  - 'packages/*'
