@@ -4,6 +4,7 @@ import { ConfigModule, ConfigType } from '@nestjs/config'
 import { LoggerModule } from 'nestjs-pino'
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'
 import { appConfig } from './config/app.config'
+import { mailerConfig } from './mailer/mailer.config'
 import { HealthController } from './observability/health.controller'
 import { DatabaseModule } from './database/database.module'
 import { AuthModule } from './auth/auth.module'
@@ -35,7 +36,7 @@ import { CrmModule } from './crm/crm.module'
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig],
+      load: [appConfig, mailerConfig],
     }),
     LoggerModule.forRoot({
       pinoHttp: {

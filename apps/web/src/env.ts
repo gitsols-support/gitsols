@@ -14,20 +14,27 @@ import { z } from 'zod'
 
 const isProduction = process.env.NODE_ENV === 'production'
 
-// 32-char placeholder used only when NODE_ENV !== 'production'. Auth.js will
-// happily sign / verify with this, but anything signed by this secret is
-// trivially forgeable — never let it touch a real deployment.
+// This module is imported by a few client components (they read NEXT_PUBLIC_*
+// values from it). On the client, server-only secrets like AUTH_SECRET are not
+// injected into the bundle, so we must NOT require them there — otherwise the
+// schema throws in the browser and the page fails to load. AUTH_SECRET is only
+// ever USED server-side (api-client, server actions), where it stays required.
+const isServer = typeof window === 'undefined'
+
+// 32-char placeholder used only when NODE_ENV !== 'production' OR on the client
+// (where the real secret is never used). Never let it touch a real server.
 const DEV_AUTH_SECRET_FALLBACK =
   'gitsols-dev-fallback-do-not-deploy-with-this-secret'
 
-const authSecretSchema = isProduction
-  ? z
-      .string({ required_error: 'AUTH_SECRET is required in production' })
-      .min(32, 'AUTH_SECRET must be at least 32 chars (openssl rand -base64 32)')
-  : z
-      .string()
-      .min(32, 'AUTH_SECRET must be at least 32 chars (openssl rand -base64 32)')
-      .default(DEV_AUTH_SECRET_FALLBACK)
+const authSecretSchema =
+  isProduction && isServer
+    ? z
+        .string({ required_error: 'AUTH_SECRET is required in production' })
+        .min(32, 'AUTH_SECRET must be at least 32 chars (openssl rand -base64 32)')
+    : z
+        .string()
+        .min(32, 'AUTH_SECRET must be at least 32 chars (openssl rand -base64 32)')
+        .default(DEV_AUTH_SECRET_FALLBACK)
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'staging', 'production', 'test']).default('development'),
