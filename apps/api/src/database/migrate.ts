@@ -19,12 +19,14 @@ async function main() {
     // eslint-disable-next-line no-console
     console.log('[migrate] migrations applied')
   } finally {
-    await client.end()
+    await client.end({ timeout: 5 })
   }
 }
 
-main().catch((err) => {
-  // eslint-disable-next-line no-console
-  console.error('[migrate] failed', err)
-  process.exit(1)
-})
+main()
+  .then(() => process.exit(0))
+  .catch((err) => {
+    // eslint-disable-next-line no-console
+    console.error('[migrate] failed', err)
+    process.exit(1)
+  })

@@ -54,12 +54,14 @@ async function main() {
       console.log(`[seed-admin] ${email} already has a password — leaving untouched (set ADMIN_FORCE_PASSWORD=true to override)`)
     }
   } finally {
-    await client.end()
+    await client.end({ timeout: 5 })
   }
 }
 
-main().catch((err) => {
-  // eslint-disable-next-line no-console
-  console.error('[seed-admin] failed', err)
-  process.exit(1)
-})
+main()
+  .then(() => process.exit(0))
+  .catch((err) => {
+    // eslint-disable-next-line no-console
+    console.error('[seed-admin] failed', err)
+    process.exit(1)
+  })
