@@ -72,6 +72,11 @@ async function bootstrap(): Promise<void> {
 
   await app.listen(env.PORT, '0.0.0.0')
 
+  // Plain stdout log (unbuffered) so the bind port is always visible in the
+  // platform logs even before Pino flushes — useful for diagnosing the
+  // platform healthcheck/port mapping.
+  // eslint-disable-next-line no-console
+  console.log(`[boot] API bound to 0.0.0.0:${env.PORT} (PORT env=${process.env.PORT ?? 'unset'})`)
   logger.log(`API listening on http://localhost:${env.PORT}`)
   logger.log(`Health: http://localhost:${env.PORT}/health/live`)
   if (env.NODE_ENV !== 'production') {
