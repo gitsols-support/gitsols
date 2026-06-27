@@ -62,18 +62,18 @@ const envSchema = z.object({
   // Dev-mode bypass — when "true", the middleware lets /admin/* through
   // without an Auth.js session. NEVER set this in production; the parser
   // throws if it's enabled while NODE_ENV=production.
-  ADMIN_DEV_BYPASS: z
-    .enum(['true', 'false'])
-    .default('false')
-    .transform((v) => v === 'true'),
-  NEXT_PUBLIC_ADMIN_DEV_BYPASS: z
-    .enum(['true', 'false'])
-    .default('false')
-    .transform((v) => v === 'true'),
-}).refine(
-  (cfg) => !(cfg.NODE_ENV === 'production' && cfg.ADMIN_DEV_BYPASS),
-  { message: 'ADMIN_DEV_BYPASS=true is not allowed when NODE_ENV=production' },
-)
+  // Comma-separated allowlist of emails granted internal admin (owner) access.
+  // Only these addresses may sign in to /admin; everyone else is rejected.
+  ADMIN_EMAILS: z
+    .string()
+    .default('support@gitsols.com')
+    .transform((v) =>
+      v
+        .split(',')
+        .map((s) => s.trim().toLowerCase())
+        .filter(Boolean),
+    ),
+})
 
 const parsed = envSchema.safeParse(process.env)
 if (!parsed.success) {

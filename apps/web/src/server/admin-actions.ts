@@ -248,3 +248,11 @@ export async function updateServiceLine(id: string, body: UpdateServiceCatalogIt
 export async function deleteServiceLine(id: string) {
   return run<void>(() => apiFetch(`/services-catalog/${id}`, { method: 'DELETE' }), '/admin/pricing')
 }
+
+// ── Account — password ───────────────────────────────────────────────────────
+export async function changeMyPassword(newPassword: string) {
+  return run<void>(
+    () => apiFetch('/auth/password/change', { method: 'POST', body: { newPassword } }),
+    '/admin',
+  )
+}

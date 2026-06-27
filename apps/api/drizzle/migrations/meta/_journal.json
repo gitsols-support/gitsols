@@ -8,6 +8,13 @@
       "when": 1782494819207,
       "tag": "0000_foamy_mysterio",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782525293596,
+      "tag": "0001_narrow_hydra",
+      "breakpoints": true
     }
   ]
 }

@@ -16,7 +16,8 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx src/database/seed.ts",
-    "migrate:deploy": "node dist/database/migrate.js"
+    "migrate:deploy": "node dist/database/migrate.js",
+    "db:seed:admin": "node dist/database/seed-admin.js"
   },
   "dependencies": {
     "@fastify/compress": "^8.0.1",

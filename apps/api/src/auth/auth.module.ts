@@ -15,6 +15,7 @@ import { appConfig } from '../config/app.config'
 import { JwtAuthGuard } from './jwt-auth.guard'
 import { RolesGuard } from './roles.guard'
 import { AuthController } from './auth.controller'
+import { PasswordController, PasswordService } from './password.controller'
 
 @Module({
   imports: [
@@ -28,8 +29,9 @@ import { AuthController } from './auth.controller'
       }),
     }),
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, PasswordController],
   providers: [
+    PasswordService,
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
   ],

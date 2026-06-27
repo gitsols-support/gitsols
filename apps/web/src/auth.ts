@@ -19,6 +19,7 @@ import NextAuth, { type NextAuthConfig, type DefaultSession } from 'next-auth'
 import MicrosoftEntraID from 'next-auth/providers/microsoft-entra-id'
 import Google from 'next-auth/providers/google'
 import Postmark from 'next-auth/providers/postmark'
+import Credentials from 'next-auth/providers/credentials'
 import type { Role } from '@gitsols/types'
 import { env } from './env'
 
@@ -30,6 +31,7 @@ declare module 'next-auth' {
       id: string
       role: Role
       accountId: string | null
+      mustResetPassword: boolean
     } & DefaultSession['user']
     /** Encoded JWT — passed to the Nest API as the Bearer token. */
     apiToken: string
@@ -38,6 +40,7 @@ declare module 'next-auth' {
   interface User {
     role?: Role
     accountId?: string | null
+    mustResetPassword?: boolean
   }
 }
 
@@ -46,6 +49,7 @@ declare module 'next-auth/jwt' {
     id?: string
     role?: Role
     accountId?: string | null
+    mustResetPassword?: boolean
   }
 }
 
@@ -79,6 +83,37 @@ if (env.POSTMARK_API_TOKEN) {
   )
 }
 
+// Email + password — always available. Credentials are verified against the
+// Nest API (which checks the scrypt hash). The ADMIN_EMAILS allowlist still
+// gates sign-in via the signIn() callback below.
+providers.push(
+  Credentials({
+    id: 'credentials',
+    name: 'Email and password',
+    credentials: { email: {}, password: {} },
+    async authorize(creds) {
+      const email = String(creds?.email ?? '').toLowerCase()
+      const password = String(creds?.password ?? '')
+      if (!email || !password) return null
+      const res = await fetch(`${env.NEXT_PUBLIC_API_URL}/auth/password/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
+      if (!res.ok) return null
+      const u = await res.json()
+      return {
+        id: u.id,
+        email: u.email,
+        name: u.name,
+        role: u.role as Role,
+        accountId: u.accountId ?? null,
+        mustResetPassword: Boolean(u.mustResetPassword),
+      }
+    },
+  }),
+)
+
 export const authConfig: NextAuthConfig = {
   secret: env.AUTH_SECRET,
   trustHost: true,
@@ -95,12 +130,29 @@ export const authConfig: NextAuthConfig = {
      * role to keep the click-through demo functional. Phase 2 wires the
      * real lookup via the Nest API's /auth/whoami endpoint.
      */
+    /**
+     * Only emails on the ADMIN_EMAILS allowlist may sign in at all.
+     * Returning false aborts the sign-in and the user never gets a session.
+     */
+    async signIn({ user }) {
+      const email = user.email?.toLowerCase()
+      return !!email && env.ADMIN_EMAILS.includes(email)
+    },
+    /**
+     * Role is derived from the allowlist on every refresh — allowlisted
+     * staff are `owner`; anyone else (should not happen, signIn blocks them)
+     * gets the lowest role.
+     */
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id
-        token.role = user.role ?? 'owner' // Phase 0 placeholder
+        token.id = user.id ?? token.sub ?? ''
+        if (user.role) token.role = user.role
         token.accountId = user.accountId ?? null
+        token.mustResetPassword = user.mustResetPassword ?? false
       }
+      const email = (token.email ?? '').toString().toLowerCase()
+      if (!token.role) token.role = env.ADMIN_EMAILS.includes(email) ? 'owner' : 'readonly'
+      token.accountId = token.accountId ?? null
       return token
     },
     /**
@@ -115,6 +167,7 @@ export const authConfig: NextAuthConfig = {
         session.user.id = token.id ?? ''
         session.user.role = token.role ?? 'readonly'
         session.user.accountId = token.accountId ?? null
+        session.user.mustResetPassword = token.mustResetPassword ?? false
       }
       // The raw JWT isn't exposed to session() in Auth.js v5; the API token
       // is fetched via getToken() in server actions. See server/api-client.ts.

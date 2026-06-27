@@ -8,7 +8,7 @@
 // Phase 2 will add: passwordHash, lastLoginAt, mfaSecret, etc. The Phase 0
 // shape here is the minimum the JWT guard needs.
 
-import { pgTable, uuid, text, timestamp, index, pgEnum } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, text, timestamp, boolean, index, pgEnum } from 'drizzle-orm/pg-core'
 import { accounts } from './accounts'
 
 export const roleEnum = pgEnum('role', [
@@ -31,6 +31,11 @@ export const users = pgTable(
     email: text('email').notNull().unique(),
     name: text('name').notNull(),
     role: roleEnum('role').notNull(),
+
+    /** scrypt password hash (scrypt$N$salt$hash). NULL until a password is set. */
+    passwordHash: text('password_hash'),
+    /** When true, the user must set a new password before using the app. */
+    mustResetPassword: boolean('must_reset_password').notNull().default(false),
 
     /**
      * Required for client_primary / client_user. NULL for internal staff.
