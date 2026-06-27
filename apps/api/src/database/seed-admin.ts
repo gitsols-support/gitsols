@@ -23,6 +23,9 @@ async function main() {
   const email = (process.env.ADMIN_EMAIL ?? 'support@gitsols.com').toLowerCase()
   const name = process.env.ADMIN_NAME ?? 'GITSOLS Support'
   const initialPassword = process.env.ADMIN_INITIAL_PASSWORD ?? 'Admin@123456'
+  // Escape hatch: ADMIN_FORCE_PASSWORD=true re-sets the password even if one
+  // already exists (recovery when the admin is locked out).
+  const force = process.env.ADMIN_FORCE_PASSWORD === 'true'
 
   const client = postgres(env.DATABASE_URL, { max: 1 })
   const db = drizzle(client)
@@ -39,16 +42,16 @@ async function main() {
       })
       // eslint-disable-next-line no-console
       console.log(`[seed-admin] created owner ${email} (initial password, reset required)`)
-    } else if (!existing.passwordHash) {
+    } else if (!existing.passwordHash || force) {
       await db
         .update(users)
-        .set({ passwordHash: hashPassword(initialPassword), mustResetPassword: true })
+        .set({ passwordHash: hashPassword(initialPassword), mustResetPassword: true, role: 'owner' })
         .where(eq(users.id, existing.id))
       // eslint-disable-next-line no-console
-      console.log(`[seed-admin] set initial password for existing ${email} (reset required)`)
+      console.log(`[seed-admin] ${force ? 'force-reset' : 'set initial'} password for ${email} (reset required)`)
     } else {
       // eslint-disable-next-line no-console
-      console.log(`[seed-admin] ${email} already has a password — leaving untouched`)
+      console.log(`[seed-admin] ${email} already has a password — leaving untouched (set ADMIN_FORCE_PASSWORD=true to override)`)
     }
   } finally {
     await client.end()
