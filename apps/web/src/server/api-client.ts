@@ -14,6 +14,11 @@ import { getToken } from 'next-auth/jwt'
 import { headers } from 'next/headers'
 import { env } from '@/env'
 
+// On HTTPS deployments (Vercel prod), Auth.js stores the session JWT in a
+// `__Secure-`-prefixed cookie. getToken must be told this or it looks for the
+// wrong cookie name and returns null (→ no Bearer → 401 from the API).
+const SECURE_COOKIE = process.env.NODE_ENV === 'production'
+
 interface ApiFetchOptions extends Omit<RequestInit, 'body'> {
   body?: unknown
   /** Override the base URL — useful for SSR pointing at internal DNS. */
@@ -33,6 +38,7 @@ export async function apiFetch<T>(path: string, opts: ApiFetchOptions = {}): Pro
     req: { headers: reqHeaders } as unknown as Parameters<typeof getToken>[0]['req'],
     secret: env.AUTH_SECRET,
     raw: true,
+    secureCookie: SECURE_COOKIE,
   })
 
   const url = `${baseUrl ?? env.NEXT_PUBLIC_API_URL}${path}`
@@ -75,6 +81,7 @@ export async function apiFetchRaw(
     req: { headers: reqHeaders } as unknown as Parameters<typeof getToken>[0]['req'],
     secret: env.AUTH_SECRET,
     raw: true,
+    secureCookie: SECURE_COOKIE,
   })
   const url = `${baseUrl ?? env.NEXT_PUBLIC_API_URL}${path}`
   const res = await fetch(url, {
