@@ -1,23 +1,18 @@
-// Server-side helper for calling the Nest API with the current user's JWT.
-//
-// Usage in a server component / server action:
+// Server-side helper for calling the Nest API as the current user.
 //
 //   import { apiFetch } from '@/server/api-client'
 //   const me = await apiFetch<SessionUser>('/auth/me')
 //
-// Throws on non-2xx; the page boundary or action can decide how to surface
-// the error. Phase 2 adds typed endpoints generated from the Nest Swagger
-// spec — until then, callers pass the return type as the generic param.
+// Auth.js v5 stores its own session token ENCRYPTED (JWE), which the Nest API
+// cannot verify. So for the API channel we mint a short-lived HS256-signed JWT
+// from the current session, using the shared AUTH_SECRET + AUTH_ISSUER that the
+// API's JwtAuthGuard verifies against. (AUTH_ISSUER must be identical on the
+// web app and the API, or verification fails with "Invalid or expired token".)
 
 import 'server-only'
-import { getToken } from 'next-auth/jwt'
-import { headers } from 'next/headers'
+import { createHmac } from 'node:crypto'
+import { auth } from '@/auth'
 import { env } from '@/env'
-
-// On HTTPS deployments (Vercel prod), Auth.js stores the session JWT in a
-// `__Secure-`-prefixed cookie. getToken must be told this or it looks for the
-// wrong cookie name and returns null (→ no Bearer → 401 from the API).
-const SECURE_COOKIE = process.env.NODE_ENV === 'production'
 
 interface ApiFetchOptions extends Omit<RequestInit, 'body'> {
   body?: unknown
@@ -25,28 +20,43 @@ interface ApiFetchOptions extends Omit<RequestInit, 'body'> {
   baseUrl?: string
 }
 
+function b64url(input: string): string {
+  return Buffer.from(input).toString('base64url')
+}
+
+/** Mint a signed JWT the Nest API can verify (HS256 + AUTH_SECRET + issuer). */
+async function mintApiToken(): Promise<string | null> {
+  const session = await auth()
+  const user = session?.user
+  if (!user?.id) return null
+  const now = Math.floor(Date.now() / 1000)
+  const header = b64url(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
+  const payload = b64url(
+    JSON.stringify({
+      id: user.id,
+      email: user.email ?? '',
+      name: user.name ?? '',
+      role: user.role,
+      accountId: user.accountId ?? null,
+      iss: env.AUTH_ISSUER,
+      iat: now,
+      exp: now + 300,
+    }),
+  )
+  const sig = createHmac('sha256', env.AUTH_SECRET).update(`${header}.${payload}`).digest('base64url')
+  return `${header}.${payload}.${sig}`
+}
+
 export async function apiFetch<T>(path: string, opts: ApiFetchOptions = {}): Promise<T> {
   const { body, baseUrl, headers: extraHeaders, ...init } = opts
-
-  // Read the encoded JWT from the request cookie. `getToken` accepts the
-  // request via the headers() API in Next 16. The raw token is what the
-  // Nest API expects as the Bearer.
-  const reqHeaders = await headers()
-  const rawToken = await getToken({
-    // next-auth's getToken expects a NextRequest-like; reconstruct from
-    // headers() since we're in a server context.
-    req: { headers: reqHeaders } as unknown as Parameters<typeof getToken>[0]['req'],
-    secret: env.AUTH_SECRET,
-    raw: true,
-    secureCookie: SECURE_COOKIE,
-  })
+  const token = await mintApiToken()
 
   const url = `${baseUrl ?? env.NEXT_PUBLIC_API_URL}${path}`
   const res = await fetch(url, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
-      ...(rawToken ? { Authorization: `Bearer ${rawToken}` } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...extraHeaders,
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -57,18 +67,13 @@ export async function apiFetch<T>(path: string, opts: ApiFetchOptions = {}): Pro
     const text = await res.text().catch(() => '')
     throw new ApiError(res.status, res.statusText, text)
   }
-
-  // 204 No Content
   if (res.status === 204) return undefined as T
-
   return (await res.json()) as T
 }
 
-
 /**
  * Like apiFetch but returns the raw response bytes — used to proxy binary
- * downloads (e.g. invoice/proposal PDFs) through a Next route handler so the
- * browser request carries no Bearer token.
+ * downloads (e.g. invoice/proposal PDFs) through a Next route handler.
  */
 export async function apiFetchRaw(
   path: string,
@@ -76,18 +81,12 @@ export async function apiFetchRaw(
 ): Promise<{ body: ArrayBuffer; contentType: string; disposition: string | null }> {
   const { body, baseUrl, headers: extraHeaders, ...init } = opts
   void body
-  const reqHeaders = await headers()
-  const rawToken = await getToken({
-    req: { headers: reqHeaders } as unknown as Parameters<typeof getToken>[0]['req'],
-    secret: env.AUTH_SECRET,
-    raw: true,
-    secureCookie: SECURE_COOKIE,
-  })
+  const token = await mintApiToken()
   const url = `${baseUrl ?? env.NEXT_PUBLIC_API_URL}${path}`
   const res = await fetch(url, {
     ...init,
     headers: {
-      ...(rawToken ? { Authorization: `Bearer ${rawToken}` } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...extraHeaders,
     },
     cache: 'no-store',

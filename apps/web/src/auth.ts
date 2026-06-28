@@ -16,6 +16,7 @@
 // (the existing stub sign-in still works for clicking through to /admin/dashboard).
 
 import NextAuth, { type NextAuthConfig, type DefaultSession } from 'next-auth'
+import 'next-auth/jwt'
 import MicrosoftEntraID from 'next-auth/providers/microsoft-entra-id'
 import Google from 'next-auth/providers/google'
 import Postmark from 'next-auth/providers/postmark'
