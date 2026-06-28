@@ -250,9 +250,28 @@ export async function deleteServiceLine(id: string) {
 }
 
 // ── Account — password ───────────────────────────────────────────────────────
-export async function changeMyPassword(newPassword: string) {
+export async function changeMyPassword(newPassword: string, currentPassword?: string) {
   return run<void>(
-    () => apiFetch('/auth/password/change', { method: 'POST', body: { newPassword } }),
+    () =>
+      apiFetch('/auth/password/change', {
+        method: 'POST',
+        body: currentPassword ? { newPassword, currentPassword } : { newPassword },
+      }),
     '/admin',
   )
+}
+
+// ── Portal — client files a ticket ───────────────────────────────────────────
+import type { CreatePortalTicketRequest, Ticket as PortalTicket } from '@gitsols/types'
+export async function createPortalTicket(body: CreatePortalTicketRequest) {
+  return run<PortalTicket>(
+    () => apiFetch('/portal/tickets', { method: 'POST', body }),
+    '/portal/tickets',
+  )
+}
+
+// ── Users (admin provisioning, incl. client portal users) ────────────────────
+import type { CreateUserRequest, AdminUser } from '@gitsols/types'
+export async function createUser(body: CreateUserRequest) {
+  return run<AdminUser>(() => apiFetch('/users', { method: 'POST', body }), '/admin/users')
 }

@@ -29,6 +29,7 @@ import {
   ReceiptText,
   FileSignature,
   Tags,
+  UserCog,
 } from 'lucide-react'
 import { cn } from '@gitsols/utils'
 
@@ -100,6 +101,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Configuration',
     items: [
+      { label: 'My account', href: '/admin/account', icon: UserCog },
       { label: 'Team & roles', href: '/admin/users', icon: Users },
       { label: 'Settings', href: '/admin/settings', icon: Settings },
       { label: 'Theme', href: '/admin/theme', icon: Palette },

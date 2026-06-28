@@ -566,5 +566,7 @@ export interface CreateUserRequest {
   name: string
   role: Role
   accountId?: string
+  /** Initial password for client portal users (forces reset on first login). */
+  initialPassword?: string
 }
 export type UpdateUserRequest = Partial<Omit<CreateUserRequest, 'email'>>

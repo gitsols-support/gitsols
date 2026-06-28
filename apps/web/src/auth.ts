@@ -136,7 +136,13 @@ export const authConfig: NextAuthConfig = {
      */
     async signIn({ user }) {
       const email = user.email?.toLowerCase()
-      return !!email && env.ADMIN_EMAILS.includes(email)
+      if (!email) return false
+      // Internal staff: must be on the admin allowlist.
+      if (env.ADMIN_EMAILS.includes(email)) return true
+      // Client portal users: any account-scoped client role may sign in.
+      const role = (user as { role?: string }).role
+      const accountId = (user as { accountId?: string | null }).accountId
+      return (role === 'client_primary' || role === 'client_user') && !!accountId
     },
     /**
      * Role is derived from the allowlist on every refresh — allowlisted

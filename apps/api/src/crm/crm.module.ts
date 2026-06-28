@@ -55,5 +55,12 @@ import { InvoicesService, InvoicesController } from '../billing/invoices'
     ProposalsService,
     InvoicesService,
   ],
+  exports: [
+    EngagementsService,
+    TicketsService,
+    DocumentsService,
+    ProposalsService,
+    InvoicesService,
+  ],
 })
 export class CrmModule {}

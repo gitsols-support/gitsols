@@ -314,6 +314,15 @@ export const createUserSchema = z
     name: z.string().trim().min(1).max(200),
     role,
     accountId: z.string().uuid().optional(),
+    // Optional initial password — required for client portal users so they can
+    // sign in. Forces a reset on first login.
+    initialPassword: z
+      .string()
+      .min(10, 'At least 10 characters')
+      .max(200)
+      .regex(/[A-Za-z]/, 'Must contain a letter')
+      .regex(/[0-9]/, 'Must contain a number')
+      .optional(),
   })
   .strict()
 export const updateUserSchema = z

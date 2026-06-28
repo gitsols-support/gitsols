@@ -64,7 +64,7 @@ export default async function AdminUsersPage() {
           { label: 'Client users', value: users.filter((u) => u.role.startsWith('client_')).length, hint: 'portal' },
           { label: 'Roles', value: roles.length },
         ]}
-        primaryAction={{ label: 'Invite member', href: '/admin/users', icon: Plus }}
+        primaryAction={{ label: 'New user', href: '/admin/users/new', icon: Plus }}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">

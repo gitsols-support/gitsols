@@ -76,7 +76,7 @@ export default function ContactPage() {
                   Open a ticket from your client portal.
                 </p>
                 <p className="mt-2 text-[13px] text-white/70 leading-relaxed">
-                  portal.gitsols.com routes faster than the form here — and
+                  The client portal routes faster than the form here — and
                   preserves the audit trail.
                 </p>
               </div>

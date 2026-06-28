@@ -36,6 +36,10 @@ export type VerifyPasswordDto = z.infer<typeof verifyPasswordSchema>
 
 export const changePasswordSchema = z
   .object({
+    // Optional: when present (voluntary change from the account page) it is
+    // verified against the stored hash. Absent for the forced first-login
+    // reset, which is already gated by a fresh authentication.
+    currentPassword: z.string().min(1).max(200).optional(),
     newPassword: z
       .string()
       .min(10, 'Password must be at least 10 characters')
@@ -78,7 +82,17 @@ export class PasswordService {
     }
   }
 
-  async change(userId: string, newPassword: string): Promise<void> {
+  async change(userId: string, newPassword: string, currentPassword?: string): Promise<void> {
+    if (currentPassword !== undefined) {
+      const [row] = await this.db.db
+        .select({ passwordHash: users.passwordHash })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1)
+      if (!row || !verifyPassword(currentPassword, row.passwordHash)) {
+        throw new UnauthorizedException('Current password is incorrect')
+      }
+    }
     await this.db.db
       .update(users)
       .set({
@@ -110,6 +124,6 @@ export class PasswordController {
   @UsePipes(new ZodValidationPipe(changePasswordSchema))
   async change(@Body() body: ChangePasswordDto, @CurrentUser() user: SessionUser | undefined) {
     if (!user) throw new UnauthorizedException()
-    await this.passwords.change(user.id, body.newPassword)
+    await this.passwords.change(user.id, body.newPassword, body.currentPassword)
   }
 }

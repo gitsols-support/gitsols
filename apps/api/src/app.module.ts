@@ -14,6 +14,7 @@ import { ProspectsModule } from './prospects/prospects.module'
 import { PreviewModule } from './preview/preview.module'
 import { NocModule } from './noc/noc.module'
 import { CrmModule } from './crm/crm.module'
+import { PortalModule } from './portal/portal.module'
 
 /**
  * Root module — keep this thin. Feature modules live under their own
@@ -75,6 +76,7 @@ import { CrmModule } from './crm/crm.module'
     PreviewModule,
     NocModule,
     CrmModule,
+    PortalModule,
   ],
   controllers: [HealthController],
   providers: [

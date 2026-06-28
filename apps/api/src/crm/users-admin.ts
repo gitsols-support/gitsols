@@ -15,6 +15,7 @@ import { ApiTags } from '@nestjs/swagger'
 import { eq, asc } from 'drizzle-orm'
 import { DatabaseService } from '../database/database.service'
 import { users, type DbUser } from '../database/schema/users'
+import { hashPassword } from '../auth/password.util'
 import { accounts } from '../database/schema/accounts'
 import { Roles } from '../auth/roles.decorator'
 import { CurrentUser } from '../auth/current-user.decorator'
@@ -61,7 +62,15 @@ export class UsersAdminService {
   async create(dto: CreateUserDto): Promise<AdminUser> {
     const [row] = await this.db.db
       .insert(users)
-      .values({ email: dto.email.toLowerCase(), name: dto.name, role: dto.role, accountId: dto.accountId })
+      .values({
+        email: dto.email.toLowerCase(),
+        name: dto.name,
+        role: dto.role,
+        accountId: dto.accountId,
+        ...(dto.initialPassword
+          ? { passwordHash: hashPassword(dto.initialPassword), mustResetPassword: true }
+          : {}),
+      })
       .returning()
     return this.serialize(row, null)
   }

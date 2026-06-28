@@ -15,6 +15,7 @@ export {}
 // service catalog, marketing/GHL, dashboard & reports. See `crm.ts`.
 export * from './crm.js'
 export * from './billing.js'
+export * from './portal.js'
 
 // ─── Roles ─────────────────────────────────────────────────────────────────
 //

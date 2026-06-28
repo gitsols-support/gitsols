@@ -9,6 +9,8 @@
 // client-login endpoint that returns 501 (not yet wired).
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import {
   Mail,
@@ -22,6 +24,7 @@ import {
 import Wordmark from '@/components/marketing/Wordmark'
 
 export default function ClientPortalLoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -39,18 +42,14 @@ export default function ClientPortalLoginPage() {
       return
     }
     setSubmitting(true)
-    try {
-      // Phase 3 will replace this with a real credentials sign-in. For now
-      // show a deliberate "coming soon" message rather than failing silently.
-      await new Promise((r) => setTimeout(r, 600))
-      setMessage({
-        kind: 'info',
-        text:
-          'Client portal launches once your engagement begins. If you have an active engagement, call 888-503-0666 and we will get you in today.',
-      })
-    } finally {
-      setSubmitting(false)
+    const res = await signIn('credentials', { email, password, redirect: false })
+    setSubmitting(false)
+    if (res?.error) {
+      setMessage({ kind: 'error', text: 'Invalid email or password.' })
+      return
     }
+    // Middleware sends first-time users to /portal/reset-password.
+    router.push('/portal/dashboard')
   }
 
   return (
