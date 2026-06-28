@@ -9,6 +9,8 @@ import cors from '@fastify/cors'
 import compress from '@fastify/compress'
 import { AppModule } from './app.module'
 import { loadEnv } from './config/env.schema'
+import { runMigrations } from './database/migrate'
+import { seedAdmin } from './database/seed-admin'
 
 /**
  * Bootstrap.
@@ -23,8 +25,41 @@ import { loadEnv } from './config/env.schema'
  *   7. Mount Swagger in non-production.
  *   8. Bind to PORT.
  */
+
+/**
+ * Run DB migrations + admin seed in-process at boot. Each task is bounded by a
+ * timeout and never throws, so a slow/unreachable database can NEVER prevent
+ * the HTTP server from starting (and the platform healthcheck from passing).
+ * This makes deployment independent of any multi-command start script.
+ */
+async function runStartupDb(databaseUrl: string): Promise<void> {
+  const bounded = async (label: string, ms: number, fn: () => Promise<void>) => {
+    let timer: NodeJS.Timeout | undefined
+    const cap = new Promise<void>((resolve) => {
+      timer = setTimeout(() => {
+        // eslint-disable-next-line no-console
+        console.warn(`[startup] ${label} exceeded ${ms}ms — continuing without blocking boot`)
+        resolve()
+      }, ms)
+    })
+    try {
+      await Promise.race([fn(), cap])
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(`[startup] ${label} failed (continuing):`, err instanceof Error ? err.message : err)
+    } finally {
+      if (timer) clearTimeout(timer)
+    }
+  }
+  await bounded('migrate', 60_000, () => runMigrations(databaseUrl))
+  await bounded('seed-admin', 30_000, () => seedAdmin(databaseUrl))
+}
+
 async function bootstrap(): Promise<void> {
   const env = loadEnv()
+
+  // Apply migrations + seed the admin before serving (bounded; never blocks).
+  await runStartupDb(env.DATABASE_URL)
 
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,

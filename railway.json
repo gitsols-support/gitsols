@@ -5,7 +5,7 @@
     "dockerfilePath": "apps/api/Dockerfile"
   },
   "deploy": {
-    "startCommand": "timeout 90 node dist/database/migrate.js || echo '[migrate] timed out/failed — continuing'; timeout 30 node dist/database/seed-admin.js || echo '[seed-admin] timed out/failed — continuing'; echo '[start] launching API'; node dist/main.js",
+    "startCommand": "node dist/main.js",
     "healthcheckPath": "/health/live",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",
