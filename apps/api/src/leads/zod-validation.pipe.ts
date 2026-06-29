@@ -10,7 +10,12 @@ import { ZodError, ZodType } from 'zod'
 export class ZodValidationPipe<TSchema extends ZodType> implements PipeTransform {
   constructor(private readonly schema: TSchema) {}
 
-  transform(value: unknown, _metadata: ArgumentMetadata): unknown {
+  transform(value: unknown, metadata: ArgumentMetadata): unknown {
+    // Only validate the request body. Method-level @UsePipes runs the pipe for
+    // every handler parameter (including @CurrentUser, @Param, @Query); without
+    // this guard the pipe would validate the SessionUser object against the
+    // body schema and reject every request.
+    if (metadata.type !== 'body') return value
     try {
       return this.schema.parse(value)
     } catch (err) {
